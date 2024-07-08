@@ -1,59 +1,48 @@
-import { Task, TaskCreateForm, TaskRecurranceUnit } from "@/types/task";
+import { Task, TaskCreateForm } from "@/types/task";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import "react-native-get-random-values";
 import { v4 as uuid } from "uuid";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type State = {
   tasks: Task[];
 };
 
 type Action = {
-  addTask: (task: TaskCreateForm) => void;
+  refreshTasks: () => Promise<void>;
+  addTask: (task: TaskCreateForm) => Promise<string>;
   updateTask: (task: Partial<TaskCreateForm>) => void;
   removeTask: (task: string) => void;
   clearTasks: () => void;
 };
 
-const sampleTasks: Task[] = [
-  {
-    id: "1",
-    title: "Clean Toilet",
-    remarks: "Remarks 1",
-    recurrance: {
-      unit: TaskRecurranceUnit.Daily,
-      value: 1,
-    },
-  },
-  {
-    id: "2",
-    title: "餵杜蟲藥",
-    remarks: "Remarks 2",
-    recurrance: {
-      unit: TaskRecurranceUnit.Monthly,
-      value: 3,
-    },
-  },
-  {
-    id: "3",
-    title: "打針",
-    remarks: "Remarks 3",
-    recurrance: {
-      unit: TaskRecurranceUnit.Weekly,
-      value: 3,
-    },
-  },
-];
+const TASK_STORAGE_KEY = "@tasks";
 
 export const useTaskStore = create<State & Action>()(
-  immer((set) => ({
-    tasks: [...sampleTasks],
-    addTask: (task: TaskCreateForm) => {
-      set((state) => {
-        state.tasks.push({
-          id: uuid(),
-          ...task,
+  immer((set, get) => ({
+    tasks: [],
+    refreshTasks: async () => {
+      const tasks = await AsyncStorage.getItem(TASK_STORAGE_KEY);
+      if (tasks) {
+        set((state) => {
+          state.tasks = JSON.parse(tasks);
         });
+      }
+    },
+    addTask: async (task: TaskCreateForm) => {
+      const id = uuid();
+      const updatedTaskList = [{ id, ...task }, ...get().tasks];
+      set((state) => {
+        state.tasks = updatedTaskList;
       });
+
+      await AsyncStorage.setItem(
+        TASK_STORAGE_KEY,
+        JSON.stringify(updatedTaskList),
+      );
+
+      return id;
     },
     updateTask: (task: Partial<Task>) => {
       set((state) => {

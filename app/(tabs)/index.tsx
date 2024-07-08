@@ -6,11 +6,14 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTaskStore } from "@/stores/task";
 import { TaskPreview } from "@/components/task/TaskPreview";
-import { useRouter } from "expo-router";
+import { useEffect } from "react";
 
 export default function HomeScreen() {
-  const router = useRouter();
-  const { tasks } = useTaskStore();
+  const { tasks, refreshTasks } = useTaskStore();
+
+  useEffect(() => {
+    refreshTasks();
+  }, [refreshTasks]);
 
   return (
     <ParallaxScrollView>
@@ -24,12 +27,6 @@ export default function HomeScreen() {
             <TaskPreview key={task.id} task={task} />
           ))}
         </ThemedView>
-        <Pressable
-          style={styles.createBtn}
-          onPress={() => router.push("/taskModal")}
-        >
-          <ThemedText>Create Task</ThemedText>
-        </Pressable>
       </ThemedView>
     </ParallaxScrollView>
   );

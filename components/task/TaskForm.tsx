@@ -4,7 +4,7 @@ import {
   TaskCreateFormSchema,
   TaskRecurranceUnit,
 } from "@/types/task";
-import { Button, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { ThemedInput } from "../form/ThemedInput";
@@ -12,11 +12,17 @@ import ControllerBase from "../form/ControllerBase";
 import { ThemedText } from "../ThemedText";
 import { TaskRecurranceUnitOptions } from "@/constants/options";
 import ThemedDropdown from "../form/ThemedDropdown";
+import { useTaskStore } from "@/stores/task";
+import { useRouter } from "expo-router";
+import { ThemedButton } from "../ThemedButton";
 
 type Props = {
   isEdit?: boolean;
 };
+
 export default function TaskForm({ isEdit = false }: Props) {
+  const router = useRouter();
+  const { addTask, updateTask } = useTaskStore();
   const {
     control,
     handleSubmit,
@@ -33,8 +39,14 @@ export default function TaskForm({ isEdit = false }: Props) {
     },
   });
 
-  const onSubmit = (data: TaskCreateForm) => {
-    console.log(data);
+  const onSubmit = async (data: TaskCreateForm) => {
+    if (isEdit) {
+      updateTask(data);
+    } else {
+      await addTask(data);
+      // disimss the modal
+      router.dismiss();
+    }
   };
 
   return (
@@ -111,7 +123,22 @@ export default function TaskForm({ isEdit = false }: Props) {
             name="remarks"
           />
         </ControllerBase>
-        <Button title="submit" onPress={handleSubmit(onSubmit)} />
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 16,
+            justifyContent: "center",
+          }}
+        >
+          <ThemedButton type="buttonPrimary" onPress={handleSubmit(onSubmit)}>
+            <ThemedText type="defaultSemiBold">
+              {isEdit ? "UPDATE" : "CREATE"}
+            </ThemedText>
+          </ThemedButton>
+          <ThemedButton type="buttonWarning" onPress={() => router.dismiss()}>
+            <ThemedText type="defaultSemiBold">CANCEL</ThemedText>
+          </ThemedButton>
+        </View>
       </View>
     </View>
   );
