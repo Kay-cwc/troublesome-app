@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
@@ -13,6 +14,7 @@ import { SingleCalendarController } from "../form/CalendarController";
 import ControllerBase from "../form/ControllerBase";
 import ThemedDropdown from "../form/ThemedDropdown";
 import { ThemedInput } from "../form/ThemedInput";
+import { ButtonGroup } from "./ButtonGroup";
 
 type Props = {
     isEdit?: boolean;
@@ -40,7 +42,8 @@ export default function TaskForm({ isEdit = false }: Props) {
 
     const onSubmit = async (data: TaskCreateForm) => {
         if (isEdit) {
-            updateTask(data);
+            const FAKE_ID = "1";
+            updateTask(FAKE_ID, data);
         } else {
             await addTask(data);
             // disimss the modal
@@ -126,25 +129,23 @@ export default function TaskForm({ isEdit = false }: Props) {
                     <Controller
                         control={control}
                         render={({ field: { onChange, value } }) => (
-                            <SingleCalendarController onDayPress={onChange} selectedDate={value} />
+                            <SingleCalendarController
+                                onDayPress={onChange}
+                                selectedDate={value}
+                                maxDate={dayjs().format("YYYY-MM-DD")}
+                            />
                         )}
                         name="lastActionDate"
                     />
                 </ControllerBase>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        gap: 16,
-                        justifyContent: "center",
-                    }}
-                >
+                <ButtonGroup>
                     <ThemedButton type="buttonPrimary" onPress={handleSubmit(onSubmit)}>
                         <ThemedText type="defaultSemiBold">{isEdit ? "UPDATE" : "CREATE"}</ThemedText>
                     </ThemedButton>
                     <ThemedButton type="buttonWarning" onPress={() => router.dismiss()}>
                         <ThemedText type="defaultSemiBold">CANCEL</ThemedText>
                     </ThemedButton>
-                </View>
+                </ButtonGroup>
             </View>
         </View>
     );

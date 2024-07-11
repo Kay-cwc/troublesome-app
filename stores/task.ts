@@ -15,12 +15,16 @@ type State = {
 
 type Action = {
     addTask: (task: TaskCreateForm) => Promise<string>;
-    updateTask: (task: Partial<TaskCreateForm>) => void;
+    updateTask: (id: string, updateVal: Partial<Task>) => void;
     removeTask: (task: string) => void;
     clearTasks: () => void;
 };
 
 const TASK_STORAGE_KEY = "@tasks";
+
+function sortTasksByNextActionDate(tasks: Task[]) {
+    return tasks.sort((a, b) => a.nextActionDate.getTime() - b.nextActionDate.getTime());
+}
 
 export const useTaskStore = create<State & Action>()(
     persist(
@@ -33,16 +37,21 @@ export const useTaskStore = create<State & Action>()(
                     ...(get().tasks || []),
                 ];
                 set((state) => {
-                    state.tasks = updatedTaskList.sort(
-                        (a, b) => a.nextActionDate.getTime() - b.nextActionDate.getTime()
-                    );
+                    state.tasks = sortTasksByNextActionDate(updatedTaskList);
                 });
 
                 return id;
             },
-            updateTask: (task: Partial<Task>) => {
+            updateTask: (id: string, updateVal: Partial<Task>) => {
+                const prev = get().tasks.find((t) => t.id === id);
+                if (!prev) return;
+                const updatedTask = { ...prev, ...updateVal };
+                // update nextActionDate if lastActionDate is updated
+                if (updateVal.lastActionDate) {
+                    updatedTask.nextActionDate = findNextActionDate(updatedTask);
+                }
                 set((state) => {
-                    state.tasks = state.tasks.map((t) => (t.id === task.id ? { ...t, ...task } : t));
+                    state.tasks = sortTasksByNextActionDate(state.tasks.map((t) => (t.id === id ? updatedTask : t)));
                 });
             },
             removeTask: (task: string) => {

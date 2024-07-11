@@ -2,9 +2,9 @@ import dayjs from "dayjs";
 import { useMemo } from "react";
 import { Calendar, CalendarProps, DateData } from "react-native-calendars";
 
-type Props = Omit<CalendarProps, "markedDates"> & {
+type Props = Omit<CalendarProps, "markedDates" | "onDayPress"> & {
     selectedDate?: Date;
-    onDayPress: (day: any) => void;
+    onDayPress: (day: Date) => void;
 };
 
 export function SingleCalendarController({ theme, selectedDate, onDayPress, ...props }: Props) {
