@@ -1,10 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import dayjs from "dayjs";
 import "react-native-get-random-values";
 import { v4 as uuid } from "uuid";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
+import { findNextActionDate } from "@/lib/task";
 import { Task, TaskCreateForm } from "@/types/task";
 
 type State = {
@@ -26,9 +28,14 @@ export const useTaskStore = create<State & Action>()(
             tasks: [],
             addTask: async (task: TaskCreateForm) => {
                 const id = uuid();
-                const updatedTaskList = [{ id, ...task }, ...(get().tasks || [])];
+                const updatedTaskList: Task[] = [
+                    { id, nextActionDate: findNextActionDate(task), ...task },
+                    ...(get().tasks || []),
+                ];
                 set((state) => {
-                    state.tasks = updatedTaskList;
+                    state.tasks = updatedTaskList.sort(
+                        (a, b) => a.nextActionDate.getTime() - b.nextActionDate.getTime()
+                    );
                 });
 
                 return id;
@@ -50,8 +57,33 @@ export const useTaskStore = create<State & Action>()(
             },
         })),
         {
+            version: 2,
             name: TASK_STORAGE_KEY,
-            storage: createJSONStorage(() => AsyncStorage),
+            storage: createJSONStorage(() => AsyncStorage, {
+                reviver: (key, value) => {
+                    if (typeof value == "string" && dayjs(value).isValid()) {
+                        return new Date(value);
+                    }
+                    return value;
+                },
+            }),
+            migrate: async (prevState, version) => {
+                if (version === 0) {
+                    (prevState as State).tasks = (prevState as State).tasks.map((t) => ({
+                        ...t,
+                        nextActionDate: findNextActionDate(t),
+                    }));
+                }
+
+                if (version === 1) {
+                    // sort by nextActionDate, ASC
+                    (prevState as State).tasks = (prevState as State).tasks.sort(
+                        (a, b) => a.nextActionDate.getTime() - b.nextActionDate.getTime()
+                    );
+                }
+
+                return prevState;
+            },
         }
     )
 );

@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable } from "react-native";
 
+import { formatDate } from "@/lib/formatter";
 import { Task } from "@/types/task";
 
 import { ThemedText } from "../ThemedText";
@@ -16,7 +17,7 @@ export function TaskPreview({ task }: { task: Task }) {
         <ThemedView>
             <Pressable onPress={toDetail}>
                 <ThemedText type="subtitle">{task.title}</ThemedText>
-                {/* <ThemedText type="default">{task}</ThemedText> */}
+                <ThemedText type="secondary">next time: {formatDate(task.nextActionDate)}</ThemedText>
             </Pressable>
         </ThemedView>
     );

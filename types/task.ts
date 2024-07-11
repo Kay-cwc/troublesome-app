@@ -17,6 +17,7 @@ export const TaskSchema = z.object({
         value: z.coerce.number().min(1).max(100),
     }),
     lastActionDate: z.date(),
+    nextActionDate: z.date(),
 });
 
 export type Task = z.infer<typeof TaskSchema>;
