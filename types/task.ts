@@ -16,6 +16,7 @@ export const TaskSchema = z.object({
         unit: TaskRecurranceUnitEnum,
         value: z.coerce.number().min(1).max(100),
     }),
+    lastActionDate: z.date(),
 });
 
 export type Task = z.infer<typeof TaskSchema>;
@@ -24,6 +25,7 @@ export const TaskCreateFormSchema = TaskSchema.pick({
     title: true,
     remarks: true,
     recurrance: true,
+    lastActionDate: true,
 });
 
 export type TaskCreateForm = z.infer<typeof TaskCreateFormSchema>;

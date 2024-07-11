@@ -9,6 +9,7 @@ import { TaskCreateForm, TaskCreateFormSchema, TaskRecurranceUnit } from "@/type
 
 import { ThemedButton } from "../ThemedButton";
 import { ThemedText } from "../ThemedText";
+import { SingleCalendarController } from "../form/CalendarController";
 import ControllerBase from "../form/ControllerBase";
 import ThemedDropdown from "../form/ThemedDropdown";
 import { ThemedInput } from "../form/ThemedInput";
@@ -27,12 +28,13 @@ export default function TaskForm({ isEdit = false }: Props) {
     } = useForm<TaskCreateForm>({
         resolver: zodResolver(TaskCreateFormSchema),
         defaultValues: {
-            title: "",
+            title: "Zuul打針",
             remarks: "",
             recurrance: {
-                unit: TaskRecurranceUnit.Daily,
-                value: 1,
+                unit: TaskRecurranceUnit.Weekly,
+                value: 3,
             },
+            lastActionDate: new Date(),
         },
     });
 
@@ -118,6 +120,15 @@ export default function TaskForm({ isEdit = false }: Props) {
                             />
                         )}
                         name="remarks"
+                    />
+                </ControllerBase>
+                <ControllerBase>
+                    <Controller
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                            <SingleCalendarController onDayPress={onChange} selectedDate={value} />
+                        )}
+                        name="lastActionDate"
                     />
                 </ControllerBase>
                 <View

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { StyleSheet } from "react-native";
 
 import { Mop } from "@/components/Mop";
@@ -9,11 +8,7 @@ import { TaskPreview } from "@/components/task/TaskPreview";
 import { useTaskStore } from "@/stores/task";
 
 export default function HomeScreen() {
-    const { tasks, refreshTasks } = useTaskStore();
-
-    useEffect(() => {
-        refreshTasks();
-    }, [refreshTasks]);
+    const { tasks } = useTaskStore();
 
     return (
         <ParallaxScrollView>
